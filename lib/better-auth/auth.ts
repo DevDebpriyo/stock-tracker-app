@@ -6,12 +6,12 @@ import { nextCookies} from "better-auth/next-js";
 let authInstance: ReturnType<typeof betterAuth> | null = null;
 
 export const getAuth = async () => {
-    if(authInstance) return authInstance;
+    if (authInstance) return authInstance;
 
     const mongoose = await connectToDatabase();
     const db = mongoose.connection.db;
 
-    if(!db) throw new Error('MongoDB connection not found');
+    if (!db) throw new Error('MongoDB connection not found');
 
     authInstance = betterAuth({
         database: mongodbAdapter(db as unknown as Parameters<typeof mongodbAdapter>[0]),
@@ -29,6 +29,29 @@ export const getAuth = async () => {
     });
 
     return authInstance;
-}
+};
 
-export const auth = await getAuth();
+export const auth = new Proxy({} as ReturnType<typeof betterAuth>, {
+    get(_target, prop) {
+        if (prop === 'api') {
+            return new Proxy({}, {
+                get(_apiTarget, apiProp) {
+                    return async (...args: unknown[]) => {
+                        const instance = await getAuth();
+                        const api = instance.api as Record<string, (...params: unknown[]) => unknown>;
+                        return api[apiProp as string](...args);
+                    };
+                }
+            });
+        }
+
+        return async (...args: unknown[]) => {
+            const instance = await getAuth();
+            const method = (instance as unknown as Record<string, (...params: unknown[]) => unknown>)[prop as string];
+            if (typeof method === 'function') {
+                return method.apply(instance, args);
+            }
+            return method;
+        };
+    }
+});
