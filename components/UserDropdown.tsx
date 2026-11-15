@@ -8,32 +8,34 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import {useRouter} from "next/navigation";
-import {Button} from "@/components/ui/button";
-import {LogOut} from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Bookmark, LogOut } from "lucide-react";
 import NavItems from "@/components/NavItems";
-import {signOut} from "@/lib/actions/auth.actions";
+import { signOut } from "@/lib/actions/auth.actions";
 
-// Helper function to get user initials
 const getUserInitials = (name: string): string => {
     const nameParts = name.trim().split(' ').filter(part => part.length > 0);
     
     if (nameParts.length === 0) return '?';
     if (nameParts.length === 1) return nameParts[0].substring(0, 2).toUpperCase();
     
-    // Get first letter of first name and first letter of last name
     return (nameParts[0][0] + nameParts[nameParts.length - 1][0]).toUpperCase();
 };
 
-const UserDropdown = ({ user, initialStocks }: {user: User, initialStocks: StockWithWatchlistStatus[]}) => {
+const UserDropdown = ({ user, initialStocks }: { user: User; initialStocks: StockWithWatchlistStatus[] }) => {
     const router = useRouter();
     const userInitials = getUserInitials(user.name);
 
     const handleSignOut = async () => {
         await signOut();
         router.push("/sign-in");
-    }
+    };
+
+    const handleNavigateWatchlist = () => {
+        router.push("/watchlist");
+    };
 
     return (
         <DropdownMenu>
@@ -68,6 +70,10 @@ const UserDropdown = ({ user, initialStocks }: {user: User, initialStocks: Stock
                     </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-gray-600"/>
+                <DropdownMenuItem onClick={handleNavigateWatchlist} className="text-gray-100 text-md font-medium focus:bg-transparent focus:text-yellow-500 transition-colors cursor-pointer">
+                    <Bookmark className="h-4 w-4 mr-2 hidden sm:block" />
+                    Watchlist
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleSignOut} className="text-gray-100 text-md font-medium focus:bg-transparent focus:text-yellow-500 transition-colors cursor-pointer">
                     <LogOut className="h-4 w-4 mr-2 hidden sm:block" />
                     Logout
@@ -78,6 +84,7 @@ const UserDropdown = ({ user, initialStocks }: {user: User, initialStocks: Stock
                 </nav>
             </DropdownMenuContent>
         </DropdownMenu>
-    )
-}
-export default UserDropdown
+    );
+};
+
+export default UserDropdown;
