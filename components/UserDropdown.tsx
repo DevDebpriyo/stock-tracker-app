@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from "react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -9,11 +10,12 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Bookmark, LogOut } from "lucide-react";
 import NavItems from "@/components/NavItems";
 import { signOut } from "@/lib/actions/auth.actions";
+import PageLoader from "@/components/PageLoader";
 
 const getUserInitials = (name: string): string => {
     const nameParts = name.trim().split(' ').filter(part => part.length > 0);
@@ -26,7 +28,18 @@ const getUserInitials = (name: string): string => {
 
 const UserDropdown = ({ user, initialStocks }: { user: User; initialStocks: StockWithWatchlistStatus[] }) => {
     const router = useRouter();
+    const pathname = usePathname();
+    const [mounted, setMounted] = useState(false);
+    const [isNavigating, setIsNavigating] = useState(false);
     const userInitials = getUserInitials(user.name);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    useEffect(() => {
+        setIsNavigating(false);
+    }, [pathname]);
 
     const handleSignOut = async () => {
         await signOut();
@@ -34,13 +47,35 @@ const UserDropdown = ({ user, initialStocks }: { user: User; initialStocks: Stoc
     };
 
     const handleNavigateWatchlist = () => {
+        if (pathname !== "/watchlist") {
+            setIsNavigating(true);
+        }
         router.push("/watchlist");
     };
 
+    if (!mounted) {
+        return (
+            <Button variant="ghost" className="flex items-center gap-3 text-gray-400 hover:text-yellow-500">
+                <Avatar className="h-8 w-8">
+                    <AvatarFallback className="bg-yellow-500 text-yellow-900 text-sm font-bold">
+                        {userInitials}
+                    </AvatarFallback>
+                </Avatar>
+                <div className="hidden md:flex flex-col items-start">
+                    <span className="text-base font-medium text-gray-400">
+                        {user.name}
+                    </span>
+                </div>
+            </Button>
+        );
+    }
+
     return (
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-3 text-gray-4 hover:text-yellow-500">
+        <>
+            {isNavigating ? <PageLoader /> : null}
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="flex items-center gap-3 text-gray-400 hover:text-yellow-500">
                     <Avatar className="h-8 w-8">
                         <AvatarFallback className="bg-yellow-500 text-yellow-900 text-sm font-bold">
                             {userInitials}
@@ -84,6 +119,7 @@ const UserDropdown = ({ user, initialStocks }: { user: User; initialStocks: Stoc
                 </nav>
             </DropdownMenuContent>
         </DropdownMenu>
+        </>
     );
 };
 
