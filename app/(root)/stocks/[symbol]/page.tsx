@@ -9,6 +9,7 @@ import {
   TECHNICAL_ANALYSIS_WIDGET_CONFIG,
   COMPANY_PROFILE_WIDGET_CONFIG,
   COMPANY_FINANCIALS_WIDGET_CONFIG,
+  toTradingViewSymbol,
 } from "@/lib/constants";
 
 export default async function StockDetails({ params }: StockDetailsPageProps) {
@@ -28,6 +29,7 @@ export default async function StockDetails({ params }: StockDetailsPageProps) {
 
   const [inWatchlist, profile] = await Promise.all([inWatchlistPromise, profilePromise]);
   const companyName = profile?.name || upperSymbol;
+  const tvSymbol = toTradingViewSymbol(upperSymbol, profile?.exchange);
 
   return (
     <div className="flex min-h-screen p-4 md:p-6 lg:p-8">
@@ -65,19 +67,19 @@ export default async function StockDetails({ params }: StockDetailsPageProps) {
 
           <TradingViewWidget
             scriptUrl={`${scriptUrl}technical-analysis.js`}
-            config={TECHNICAL_ANALYSIS_WIDGET_CONFIG(upperSymbol)}
+            config={TECHNICAL_ANALYSIS_WIDGET_CONFIG(tvSymbol)}
             height={400}
           />
 
           <TradingViewWidget
             scriptUrl={`${scriptUrl}company-profile.js`}
-            config={COMPANY_PROFILE_WIDGET_CONFIG(upperSymbol)}
+            config={COMPANY_PROFILE_WIDGET_CONFIG(tvSymbol)}
             height={440}
           />
 
           <TradingViewWidget
             scriptUrl={`${scriptUrl}financials.js`}
-            config={COMPANY_FINANCIALS_WIDGET_CONFIG(upperSymbol)}
+            config={COMPANY_FINANCIALS_WIDGET_CONFIG(tvSymbol)}
             height={464}
           />
         </div>

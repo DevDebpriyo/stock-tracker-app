@@ -262,6 +262,23 @@ export const COMPANY_FINANCIALS_WIDGET_CONFIG = (symbol: string) => ({
     largeChartUrl: '',
 });
 
+/**
+ * Maps the Finnhub `exchange` string to the TradingView exchange prefix.
+ * Falls back to an empty string so the symbol is passed bare (TradingView
+ * will attempt its own resolution).
+ */
+export const toTradingViewSymbol = (symbol: string, finnhubExchange?: string): string => {
+    if (!finnhubExchange) return symbol;
+
+    const upper = finnhubExchange.toUpperCase();
+    if (upper.includes('NASDAQ')) return `NASDAQ:${symbol}`;
+    if (upper.includes('NEW YORK')) return `NYSE:${symbol}`;
+    if (upper.includes('AMEX') || upper.includes('AMERICAN')) return `AMEX:${symbol}`;
+
+    // For other exchanges, return bare symbol and let TradingView resolve
+    return symbol;
+};
+
 export const POPULAR_STOCK_SYMBOLS = [
     // Tech Giants (the big technology companies)
     'AAPL',
